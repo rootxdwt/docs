@@ -26,12 +26,16 @@ jobs:
           CHANGED_FILES: ${{ steps.changed-files.outputs.any_changed }}
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
+          shopt -s extglob # enable extended globbing
           OUTPUT=""
           if [ ${CHANGED_FILES} == 'true' ]; then
             OUTPUT="| original | preview |%0A| ------ | ------ |%0A"
             for file in ${ALL_CHANGED_FILES}
             do
-              OUTPUT+="| ${file} |  |%0A"
+              file=${file#content/} # remove "content/" from the front
+              file=${file%.mdx} # remove ".mdx" from the back
+              file=${file//+([0-9])-/} # remove number prefixes
+              OUTPUT+="| [${file}](https://docs-cloudflare.prisma.io/${file}) |  |%0A"
             done
           else
             OUTPUT="No files changed."
